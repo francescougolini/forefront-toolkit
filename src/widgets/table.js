@@ -937,6 +937,8 @@ export class Table {
     temporaryLink.setAttribute('download', fileName);
 
     temporaryLink.click();
+    
+    temporaryLink.remove();
   }
 
   // Public methods
