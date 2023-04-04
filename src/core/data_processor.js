@@ -146,7 +146,7 @@ export class DataProcessor {
   }
 
   // Return a JSON object with the element required to create and update the data of the cluster.
-  _parseData() {
+  #parseData() {
     // Harvest the DOM for the data associated with the cluster.
     const data = formUtilities.getFormData(this.cluster.attribute.name, this.cluster.attribute.value);
 
@@ -215,7 +215,7 @@ export class DataProcessor {
         case 'POST':
           url = this.data.post.url;
 
-          data = this._parseData();
+          data = this.#parseData();
 
           actionMessage = 'Saving';
           statusMessage = 'saved';
@@ -225,7 +225,7 @@ export class DataProcessor {
         case 'PUT':
           url = this.data.put.url + this.data.post.response.uid.value + '/';
 
-          data = this._parseData();
+          data = this.#parseData();
 
           actionMessage = 'Updating';
           statusMessage = 'updated';
@@ -235,7 +235,7 @@ export class DataProcessor {
         case 'DELETE':
           url = this.data.delete.url + this.data.post.response.uid.value + '/';
 
-          data = this._parseData();
+          data = this.#parseData();
 
           actionMessage = 'Deleting';
           statusMessage = 'deleted';
@@ -287,7 +287,7 @@ export class DataProcessor {
         .then((response) => {
           if (!response.ok) {
             response.text().then((text) => {
-              this._handleErrors(requestType, statusMessage, text);
+              this.#handleErrors(requestType, statusMessage, text);
             });
           }
 
@@ -356,7 +356,7 @@ export class DataProcessor {
             }
           } else if (requestType == 'DELETE') {
             // Hide the create record button and show the update record button.
-            if (this.data.post.button && this.data.put.button && this.data.post.button) {
+            if (this.data.post.button && this.data.put.button) {
               const postButtons = document.querySelectorAll('[data-ft-button-create="' + this.data.post.button + '"]');
               const putButtons = document.querySelectorAll('[data-ft-button-update="' + this.data.put.button + '"]');
               const deleteButtons = document.querySelectorAll('[data-button-delete="' + this.data.delete.button + '"]');
@@ -401,7 +401,7 @@ export class DataProcessor {
           }
         })
         .catch((error) => {
-          this._handleErrors(requestType, statusMessage, error);
+          this.#handleErrors(requestType, statusMessage, error);
         });
     }
   }
@@ -414,7 +414,7 @@ export class DataProcessor {
    * executing the function to process the request.
    */
   onButtonClick(requestType, redirect, callback) {
-    const button = null;
+    let button = null;
 
     if (requestType === 'POST') {
       button = document.querySelectorAll('[data-ft-button-create="' + this.data.post.button + '"]');
@@ -443,10 +443,10 @@ export class DataProcessor {
    * @param {string} statusMessage The status message to be shown, e.g. 'successfully', 'not'.
    * @param {string} error The details of exception.
    */
-  _handleErrors(requestType, statusMessage, error) {
+  #handleErrors(requestType, statusMessage, error) {
     // Optional feature -- If present, show an error message in the snippet.
     if (this.statusSnippet && this.statusSnippet.length > 0) {
-      Array(this.statusSnippet).forEach((snippet, index) => {
+      Array(this.statusSnippet).flat().forEach((snippet, index) => {
         snippet.innerHTML = 'Error';
       });
     }
@@ -469,7 +469,6 @@ export class DataProcessor {
       // Re-enable the create and update record buttons.
       const postButton = document.querySelectorAll('[data-ft-button-create="' + this.data.post.button + '"]');
       const putButtons = document.querySelectorAll('[data-ft-button-update="' + this.data.put.button + '"]');
-      const deleteButton = document.querySelectorAll('[data-button-delete="' + this.data.delete.button + '"]');
 
       [postButton, putButtons, deleteButtons].forEach((buttonList, index) => {
         Array.from(buttonList).forEach((button, buttonIndex) => {
