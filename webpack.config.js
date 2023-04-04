@@ -13,7 +13,7 @@ module.exports = {
   },
   mode: 'development',
   plugins: [
-    new webpack.BannerPlugin({banner: 'Copyright (c) 2021 Francesco Ugolini <contact@francescougolini.com> \nSPDX-License-Identifier: MPL-2.0'})
+    new webpack.BannerPlugin({banner: 'Copyright (c) 2021-2023 Francesco Ugolini <contact@francescougolini.com> \nSPDX-License-Identifier: MPL-2.0'})
   ]
 };
 

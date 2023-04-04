@@ -59,8 +59,8 @@ export class DataCollection {
    *
    * @param {string} dataPoint
    */
-  _parseDataPoint(dataPoint = '', variableType = 'text') {
-    // Stingify boolean values
+  #parseDataPoint(dataPoint = '', variableType = 'text') {
+    // Stringify boolean values
     dataPoint = typeof dataPoint === 'boolean' ? dataPoint.toString() : dataPoint;
 
     if (dataPoint) {
@@ -94,7 +94,7 @@ export class DataCollection {
    *
    * @param {object} rawData An object containing the data to be used to populate the data set.
    */
-  _parseRecords(rawData) {
+  #parseRecords(rawData) {
     let records = [];
 
     if (rawData && rawData.length > 0) {
@@ -104,7 +104,7 @@ export class DataCollection {
         this.variables.maps.uids.forEach((variable, variableUID) => {
           let variableType = this.variables.maps.types.get(variableUID);
 
-          dataField.push(this._parseDataPoint(dataPoint[variable], variableType));
+          dataField.push(this.#parseDataPoint(dataPoint[variable], variableType));
         });
 
         records.push(dataField);
@@ -119,8 +119,8 @@ export class DataCollection {
    *
    * @param {Object} rawData An object containing the data to be used to populate the data set.
    */
-  _createDataSet(rawData) {
-    const dataPoints = rawData && rawData.length > 0 ? this._parseRecords(rawData) : [];
+  #createDataSet(rawData) {
+    const dataPoints = rawData && rawData.length > 0 ? this.#parseRecords(rawData) : [];
 
     this.dataSet = dataPoints;
 
@@ -131,7 +131,7 @@ export class DataCollection {
   /**
    * Create the indexes necessary to process, manipulate and represent the data set and it's records.
    */
-  _createVariablesMaps() {
+  #createVariablesMaps() {
     // Generate a Map with the variables according to the order provided in the list of variables.
 
     for (let i = 0; i < this.variables.size; i++) {
@@ -140,7 +140,7 @@ export class DataCollection {
 
       const variableUID = variable.uid ? variable.uid : 'var_uid_' + index;
 
-      if (this.variables.list && this.variables.list.includes(variableUID)) {
+      if (this.variables.list.includes(variableUID)) {
         throw 'Data Collection Error: ' + variableUID + ' already exists. Please, provide another unique UID.';
       }
 
@@ -196,10 +196,10 @@ export class DataCollection {
    */
   buildDataCollection(rawData) {
     // 1. Create the variable index (necessary to get the records). .
-    this._createVariablesMaps();
+    this.#createVariablesMaps();
 
     // 2. Store the records (arrays) into a class property.
-    this._createDataSet(rawData);
+    this.#createDataSet(rawData);
   }
 
   /**
@@ -273,7 +273,7 @@ export class DataCollection {
    */
   addRecords(rawData) {
     if (rawData && rawData.length > 0) {
-      const data = this._parseRecords(rawData);
+      const data = this.#parseRecords(rawData);
 
       // 2. Include the new parsed records in the data set.
       Array.prototype.push.apply(this.dataSet, data);
@@ -290,7 +290,7 @@ export class DataCollection {
   addVariable(variableProperties, records) {
     this.variables.push(variableProperties);
 
-    this._createVariablesMaps();
+    this.#createVariablesMaps();
 
     const variableUID = this.variables.maps.reverseUids.get(variableProperties.sourceField);
 
@@ -319,9 +319,9 @@ export class DataCollection {
       if (variableUID) {
         const type = this.variables.maps.types.get(variableUID);
 
-        this.dataSet[index] = this._parseDataPoint(values, type);
+        this.dataSet[index] = this.#parseDataPoint(values, type);
       } else {
-        this.dataSet[index] = this._parseRecords(values);
+        this.dataSet[index] = this.#parseRecords(values);
       }
     } else if (variableUID) {
       const index = this.variables.maps.reverseUids.get(variableUID);
@@ -330,9 +330,9 @@ export class DataCollection {
         if (typeof values == 'string') {
           const splitData = values.split('');
 
-          this.dataSet[i][index] = this._parseDataPoint(splitData[i]);
+          this.dataSet[i][index] = this.#parseDataPoint(splitData[i]);
         } else {
-          this.dataSet[i][index] = this._parseDataPoint(values[i]);
+          this.dataSet[i][index] = this.#parseDataPoint(values[i]);
         }
       }
     }
@@ -467,19 +467,16 @@ export class DataCollection {
               return order * (dataPointA - dataPointB);
             }
 
-            if (dataPointA !== undefined && dataPointB !== undefined) {
-              if (dataPointA < dataPointB) {
-                return order * -1;
-              }
+            if (dataPointA < dataPointB) {
+              return order * -1;
+            }
 
-              if (dataPointA > dataPointB) {
-                return order * 1;
-              }
-
-              return 0;
+            if (dataPointA > dataPointB) {
+              return order * 1;
             }
 
             return 0;
+
           });
         } else {
           throw new Error('Error: variable NOT found.');

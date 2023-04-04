@@ -12,7 +12,7 @@
 export {
   createDateTextField,
   getDateFromString,
-  getTodaysDate,
+  getTodayDate,
   convertIsoDateInEuDate,
   convertEuDateInIsoDate,
   getISOWeekNumber,
@@ -152,7 +152,7 @@ function getDateFromString(dateString) {
 /**
  * Generate today's day according to the European standard
  */
-function getTodaysDate() {
+function getTodayDate() {
   let newDate = new Date();
 
   let month = newDate.getMonth() + 1;
@@ -316,12 +316,8 @@ function getEndOfMonth(year, month) {
  * @param {boolean} showDate Display the date.
  * @param {boolean} showTime Display the time.
  */
-function getDateTimeInEuFormat(year, month, day, hours, minutes, seconds, spaced, lineBreak, showDate, showTime) {
+function getDateTimeInEuFormat(year, month, day, hours, minutes, seconds, spaced, lineBreak, showDate = true, showTime = false) {
   // TODO: replace the booleans check with true and refactor the associated instances.
-
-  // By default show the date, but not the time
-  showDate = showDate ? showDate : true;
-  showTime = showTime ? showTime : false;
 
   let date = '';
   let time = '';
@@ -368,13 +364,13 @@ function getDaysInMonth(year, month) {
  * @param {number} month The month where the week belongs. An integer number, between 0 and 11.
  * @param {number} day The day whose day of the week is to be calculated. An integer number, between 1 and 31.
  * @param {[number]} businessDays Default: [1, 2, 3, 4, 5]. The days of the week considered to be business days.
- * @param {[number]} holydays The date of the month that, although a business days, is not considered as such.
+ * @param {[number]} holidays The date of the month that, although a business days, is not considered as such.
  * @returns True if it's a business day, otherwise false.
  */
-function isBusinessDay(year, month, day, businessDays = [1, 2, 3, 4, 5], holydays = []) {
+function isBusinessDay(year, month, day, businessDays = [1, 2, 3, 4, 5], holidays = []) {
   const date = new Date(year, month, day);
 
-  if (holydays.length > 0 && holydays.includes(date.getDate())) {
+  if (holidays.length > 0 && holidays.includes(date.getDate())) {
     return false;
   } else if (businessDays.length > 0 && businessDays.includes(date.getDay())) {
     return true;

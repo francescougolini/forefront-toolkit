@@ -55,7 +55,7 @@ export class FilterSet {
       this.filters.openSearch = properties.openSearch ? properties.openSearch : undefined;
 
       // Daterange
-      const dateRange = properties.dateRange && Object.keys(properties.dateRange) ? properties.dateRange : {};
+      const dateRange = properties.dateRange ? properties.dateRange : {};
 
       this.filters.dateRange.visible = dateRange && dateRange.visible ? dateRange.visible : false;
 
@@ -78,7 +78,7 @@ export class FilterSet {
         dateRange.time && dateRange.time.coupling ? dateRange.time.coupling : false;
 
       // Daterange Filter - Date Toggles
-      const dateToggles = dateRange.toggles && Object.keys(dateRange.toggles) ? dateRange.toggles : {};
+      const dateToggles = dateRange.toggles ? dateRange.toggles : {};
 
       this.filters.dateRange.toggles.today = dateToggles.today ? dateToggles.today : false;
       this.filters.dateRange.toggles.thisWeek = dateToggles.thisWeek ? dateToggles.thisWeek : false;
@@ -221,7 +221,7 @@ export class FilterSet {
     }
   }
 
-  _addOpenSearchFilter() {
+  #addOpenSearchFilter() {
     const openSearch = `<div id="${this.id}-open-search" class="col">
                             <div class="input-group">
                                 <input type="text" class="form-control border-secondary" 
@@ -233,7 +233,7 @@ export class FilterSet {
     return openSearch;
   }
 
-  _addDateRangeFilter(todaysButton = false, thisWeekButton = false, thisMonthButton = false, thisYearButton = false) {
+  #addDateRangeFilter(todayButton = false, thisWeekButton = false, thisMonthButton = false, thisYearButton = false) {
     let dateRangeFilter = `
       <div class="date-filter col-auto">
         <div class="input-group input-group-sm">
@@ -275,7 +275,7 @@ export class FilterSet {
     if (this.filters.dateRange.date.start && this.filters.dateRange.date.end) {
       const optionalParameters = {
         today: {
-          visible: todaysButton ? true : false,
+          visible: todayButton ? true : false,
           parameters: ['today', 'Today'],
         },
         thisWeek: {
@@ -327,12 +327,12 @@ export class FilterSet {
     return dateRangeFilter;
   }
 
-  _addCustomFilter(customFilterProperties) {
+  #addCustomFilter(customFilterProperties) {
     const filter = customFilterProperties.filters ? customFilterProperties.filters : [];
 
     const filterClass = customFilterProperties.class ? customFilterProperties.class : '';
 
-    const _addCustomFilterToggles = (filter, filterClass) => {
+    const addCustomFilterToggles = (filter, filterClass) => {
       let customFilterToggles = '';
 
       for (let i = 0; i < Object.keys(filter).length; i++) {
@@ -358,7 +358,7 @@ export class FilterSet {
     };
 
     const customFilters = `<div class="custom-filter-container d-flex gap-2 flex-wrap">
-                              ${_addCustomFilterToggles(filter, filterClass)}     
+                              ${addCustomFilterToggles(filter, filterClass)}     
                            </div>`;
 
     const filterName = customFilterProperties.name ? customFilterProperties.name : '';
@@ -373,7 +373,7 @@ export class FilterSet {
     return customFilters;
   }
 
-  _addSortingFilter() {
+  #addSortingFilter() {
     let ascendingOrderToggles = ``;
     let descendingOrderToggles = ``;
 
@@ -440,8 +440,8 @@ export class FilterSet {
    *
    * @param {Object} controls A dictionary of controls dictionaries, populated when the filter is instantiated.
    */
-  _addControls(controls) {
-    const _addControlToggles = () => {
+  #addControls(controls) {
+    const addControlToggles = () => {
       let controlToggles = '';
 
       for (let i = 0; i < Object.keys(controls).length; i++) {
@@ -468,7 +468,7 @@ export class FilterSet {
 
     const filtersControls = `<div class="controls-container row pt-3">
                                 <div class="list-filterSet d-flex gap-2">
-                                    ${_addControlToggles()}
+                                    ${addControlToggles()}
                                 </div>
                             </div>`;
 
@@ -478,7 +478,7 @@ export class FilterSet {
   /**
    * Generate a HTML representation of the filters specified in the FilterSet options object.
    */
-  _createFilterSet() {
+  #createFilterSet() {
     // BEGIN of the FilterSet Container
     let filterSet = `<div class="filterSet-main-container flex-fill p-3 bg-light">`;
 
@@ -486,7 +486,7 @@ export class FilterSet {
 
     if (this.filters.openSearch) {
       filterSet += `<div class="search-field-container row" id="${this.id}-open-search-filter"> 
-                      ${this._addOpenSearchFilter()} 
+                      ${this.#addOpenSearchFilter()} 
                     </div>`;
     }
 
@@ -505,7 +505,7 @@ export class FilterSet {
     if (this.filters.dateRange.visible) {
       filterSet += `<div class="filterSet-blocks pt-3" id="${this.id}-daterange-filter" hidden> 
                       <div class="daterange-container row gap-3">
-                          ${this._addDateRangeFilter(
+                          ${this.#addDateRangeFilter(
                             this.filters.dateRange.toggles.today,
                             this.filters.dateRange.toggles.thisWeek,
                             this.filters.dateRange.toggles.thisMonth,
@@ -519,21 +519,21 @@ export class FilterSet {
       for (let i = 0; i < Object.keys(this.filters.custom.list).length; i++) {
         filterSet += `<div class="filterSet-blocks pt-3" id="${this.filters.custom.list[i]['class']}-filter" 
                           hidden>
-                            ${this._addCustomFilter(this.filters.custom.list[i])}
+                            ${this.#addCustomFilter(this.filters.custom.list[i])}
                         </div>`;
       }
     }
 
     if (this.filters.sorting.fields) {
       filterSet += `<div class="filterSet-blocks pt-3" id="${this.id}-sorting-filter" hidden>
-                        ${this._addSortingFilter()}
+                        ${this.#addSortingFilter()}
                       </div>`;
     }
 
     filterSet +=
       this.filters.dateRange.visible || this.filters.custom.list || this.filters.sorting.fields ? '</div>' : '';
 
-    const controlsOptions = this._addControls(this.controls);
+    const controlsOptions = this.#addControls(this.controls);
 
     // END of the FilterSet Container
     filterSet += '</div>';
@@ -558,7 +558,7 @@ export class FilterSet {
    *
    * @param customFilter {Object} An object representing a custom filter.
    */
-  _createQueryFromCustomFilters(customFilter) {
+  #createQueryFromCustomFilters(customFilter) {
     let queryset = [];
 
     if (customFilter) {
@@ -613,7 +613,7 @@ export class FilterSet {
   initialise() {
     // If a filterSet control element is specified, display the filter in the DOM.
     if (this.filters.openSearch || this.filters.dateRange.visible || this.filters.custom.list) {
-      const filterSet = this._createFilterSet();
+      const filterSet = this.#createFilterSet();
 
       const filterSetContainer = `<div id="${this.id}" class="d-flex border" style="border-radius:0.4rem;">
                                   ${filterSet}
@@ -630,12 +630,12 @@ export class FilterSet {
 
     // If existing, set the initial time span query.
     if (this.query.presets.timeSpan.initial) {
-      this._setTimeSpanPresets(this.query.presets.timeSpan.initial);
+      this.#setTimeSpanPresets(this.query.presets.timeSpan.initial);
     }
 
     // Daterange actions and behaviour.
-    this._activateDateRangeToggles();
-    this._activateDateRangeClearButton();
+    this.#activateDateRangeToggles();
+    this.#activateDateRangeClearButton();
 
     // Toggle buttons actions and behaviour.
     const filterSetContainer = document.querySelector('#' + this.id);
@@ -700,7 +700,7 @@ export class FilterSet {
        *
        * @param {Element} elementToRemove The DOM element to be removed.
        */
-      const _removeDeselectedItem = (elementToRemove) => {
+      const removeDeselectedItem = (elementToRemove) => {
         const fieldSortPriority = elementToRemove.getAttribute('data-ft-sort-priority');
         const lastFieldSortPriority = priorityCounters.global;
 
@@ -747,7 +747,7 @@ export class FilterSet {
         elementToRemove.hidden = true;
       };
 
-      // Add an event listner that include a newly selected toggle in the counter and, consequently, in the query.
+      // Add an event listener that include a newly selected toggle in the counter and, consequently, in the query.
       Array.from(sortingToggles).forEach((toggle, index) => {
         toggle.addEventListener('click', (event) => {
           const sortPriorityBadge = toggle.firstElementChild.matches('span.sort-priority-badge')
@@ -762,7 +762,7 @@ export class FilterSet {
             );
 
             if (fieldGroup) {
-              _removeDeselectedItem(fieldGroup);
+              removeDeselectedItem(fieldGroup);
             }
 
             // Include the newly selected toggle in the global counter.
@@ -789,7 +789,7 @@ export class FilterSet {
             sortPriorityBadge.setAttribute('data-ft-sort-priority', priorityCounters.global);
             sortPriorityBadge.hidden = false;
           } else if (sortPriorityBadge) {
-            _removeDeselectedItem(sortPriorityBadge);
+            removeDeselectedItem(sortPriorityBadge);
           }
         });
       });
@@ -828,27 +828,27 @@ export class FilterSet {
    * @param {string} timeSpan The type of time span preset. Options: 'all', 'this_year', 'this_month', 'this_week',
    *                          'today', 'this_year_month', 'dayspan_' + days.
    */
-  _setTimeSpanPresets(timeSpan) {
+  #setTimeSpanPresets(timeSpan) {
     if (timeSpan) {
       switch (timeSpan) {
         case 'today':
-          this._getTodayRecords();
+          this.#getTodayRecords();
           break;
 
         case 'thisWeek':
-          this._getThisWeekRecords();
+          this.#getThisWeekRecords();
           break;
 
         case 'thisMonth':
-          this._getThisMonthRecords();
+          this.#getThisMonthRecords();
           break;
 
         case 'thisMonthSoFar':
-          this._getThisMonthSoFarRecords();
+          this.#getThisMonthSoFarRecords();
           break;
 
         case 'thisYear':
-          this._getThisYearRecords();
+          this.#getThisYearRecords();
           break;
 
         case 'all':
@@ -856,29 +856,29 @@ export class FilterSet {
 
         case (timeSpan.match(/day_span_\d{1,}/) || {}).input:
           const daySpan = this.filter.replace(/day_span_/, '');
-          this._getRecordsByDays(daySpan);
+          this.#getRecordsByDays(daySpan);
           break;
 
         case 'fromToday':
-          this._getFromTodayRecords();
+          this.#getFromTodayRecords();
           break;
 
         case 'tomorrow':
-          this._getTomorrowRecords();
+          this.#getTomorrowRecords();
           break;
       }
     }
   }
 
   // Get the input searched records and, optionally, update the list.
-  _getSearchQueryRecords() {
+  #getSearchQueryRecords() {
     const openSearchField = document.querySelector('#' + this.id + '-open-search-field');
 
     this.query.search = openSearchField.value ? openSearchField.value : '';
   }
 
   // Get the query to sort elements by a predefined order.
-  _getSortingQuery() {
+  #getSortingQuery() {
     if (this.filters.sorting.keywords) {
       const sortingFilter = document.querySelector('#' + this.id + '-sorting-filter');
       const sortingToggles = sortingFilter.querySelectorAll('.sorting-filter-toggle.active');
@@ -938,7 +938,7 @@ export class FilterSet {
             }
           });
 
-          const _addSortingQuery = (orderType, values = []) => {
+          const addSortingQuery = (orderType, values = []) => {
             if (values.length > 0) {
               orderSpecificKeywords.forEach((keywordObject, index) => {
                 if (keywordObject.type === orderType) {
@@ -956,8 +956,8 @@ export class FilterSet {
             }
           };
 
-          _addSortingQuery('ascending', ascendingValues);
-          _addSortingQuery('descending', descendingValues);
+          addSortingQuery('ascending', ascendingValues);
+          addSortingQuery('descending', descendingValues);
         }
       }
     }
@@ -971,10 +971,10 @@ export class FilterSet {
   getSearchQuery() {
     // Date Range Query
     if (this.filters.dateRange.date.enabled || this.filters.dateRange.time.enabled) {
-      this._getDateRangeRecords();
+      this.#getDateRangeRecords();
     }
 
-    const _setDateRangeQuery = (dateKeyword, timeKeyword, query) => {
+    const setDateRangeQuery = (dateKeyword, timeKeyword, query) => {
       if ((dateKeyword || timeKeyword) && query) {
         const date =
           query.getFullYear() +
@@ -1012,10 +1012,10 @@ export class FilterSet {
     const dateQueryset = [];
 
     dateQueryset.push(
-      _setDateRangeQuery(this.filters.dateRange.date.start, this.filters.dateRange.time.start, this.query.startDate)
+      setDateRangeQuery(this.filters.dateRange.date.start, this.filters.dateRange.time.start, this.query.startDate)
     );
     dateQueryset.push(
-      _setDateRangeQuery(this.filters.dateRange.date.end, this.filters.dateRange.time.end, this.query.endDate)
+      setDateRangeQuery(this.filters.dateRange.date.end, this.filters.dateRange.time.end, this.query.endDate)
     );
 
     dateQueryset.forEach((value, index) => {
@@ -1027,7 +1027,7 @@ export class FilterSet {
     // Custom Filters - Query
     if (this.filters.custom.list && this.filters.custom.list.length > 0) {
       this.filters.custom.list.forEach((customFilter, index) => {
-        const query = this._createQueryFromCustomFilters(customFilter);
+        const query = this.#createQueryFromCustomFilters(customFilter);
         this.query.list = this.query.list.concat(query);
       });
     }
@@ -1039,16 +1039,16 @@ export class FilterSet {
 
     // Open Search Query
     if (this.filters.openSearch) {
-      this._getSearchQueryRecords();
+      this.#getSearchQueryRecords();
 
       if (this.query.search) {
-        this.query.list.push(this.query.search ? this.keywords.search + '=' + this.query.search : '');
+        this.query.list.push(this.keywords.search + '=' + this.query.search);
       }
     }
 
     // Sorting Query
     if (this.filters.sorting.fields) {
-      this._getSortingQuery();
+      this.#getSortingQuery();
     }
 
     // Filters query
@@ -1069,7 +1069,7 @@ export class FilterSet {
   /**
    * Get this year all records and, optionally, update the list.
    */
-  _getThisYearRecords() {
+  #getThisYearRecords() {
     const today = new Date();
 
     this.query.startDate = new Date(today.getFullYear(), 0, 1, 0, 0);
@@ -1079,7 +1079,7 @@ export class FilterSet {
   /**
    * Get this month all records and, optionally, update the list.
    */
-  _getThisMonthRecords() {
+  #getThisMonthRecords() {
     const today = new Date();
     const yearValue = today.getFullYear();
     const monthValue = today.getMonth();
@@ -1093,7 +1093,7 @@ export class FilterSet {
   /**
    * Get all the records for this month so far.
    */
-  _getThisMonthSoFarRecords() {
+  #getThisMonthSoFarRecords() {
     const today = new Date();
 
     this.query.startDate = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0);
@@ -1110,7 +1110,7 @@ export class FilterSet {
   /**
    * Get this week records and, optionally, update the list.
    */
-  _getThisWeekRecords() {
+  #getThisWeekRecords() {
     const today = new Date();
 
     const weekNumber = date_utilities.getISOWeekNumber(today);
@@ -1134,7 +1134,7 @@ export class FilterSet {
   /**
    * Get today's records and, optionally, update the list.
    */
-  _getTodayRecords() {
+  #getTodayRecords() {
     let today = new Date();
 
     this.query.startDate = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate(), 0, 0, 0);
@@ -1144,7 +1144,7 @@ export class FilterSet {
   /**
    * Get tomorrow's records and, optionally, update the list.
    */
-  _getTomorrowRecords() {
+  #getTomorrowRecords() {
     let tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -1156,7 +1156,7 @@ export class FilterSet {
   /**
    * Get records from today onwards, optionally, update the list.
    */
-  _getFromTodayRecords() {
+  #getFromTodayRecords() {
     const today = new Date();
 
     this.query.startYear = today.getFullYear();
@@ -1172,7 +1172,7 @@ export class FilterSet {
    *
    * @param {number} daySpan  The numbers of days in the past.
    */
-  _getRecordsByDays(daySpan) {
+  #getRecordsByDays(daySpan) {
     const today = new Date();
 
     let pastDate = new Date();
@@ -1186,7 +1186,7 @@ export class FilterSet {
   /**
    * Get the date range records
    */
-  _getDateRangeRecords() {
+  #getDateRangeRecords() {
     if (!this.query.startDate && !this.query.endDate) {
       const startDateInput = this.filters.dateRange.date.enabled
         ? document.querySelector('#' + this.id + '-sd-date-input')
@@ -1210,10 +1210,10 @@ export class FilterSet {
 
       // If no values are provided, check if there are default values. Otherwise, use them.
       if (!startDate && !startTime && !endDate && !endTime && this.query.presets.timeSpan.default) {
-        this._setTimeSpanPresets(this.query.presets.timeSpan.default);
+        this.#setTimeSpanPresets(this.query.presets.timeSpan.default);
       } else {
         // Set the date according to the values provided and the type of date range.
-        const _setDateTime = (date, time) => {
+        const setDateTime = (date, time) => {
           if (date) {
             const dateTime =
               time.length > 0 ? new Date(date).setHours(time[0], time[1]) : new Date(date).setHours(0, 0);
@@ -1227,8 +1227,8 @@ export class FilterSet {
           }
         };
 
-        this.query.startDate = _setDateTime(startDate, startTime);
-        this.query.endDate = _setDateTime(endDate, endTime);
+        this.query.startDate = setDateTime(startDate, startTime);
+        this.query.endDate = setDateTime(endDate, endTime);
       }
     }
   }
@@ -1236,7 +1236,7 @@ export class FilterSet {
   /**
    * Activate the actions for the date buttons, e.g. the today's date and this week date.
    */
-  _activateDateRangeToggles() {
+  #activateDateRangeToggles() {
     if (
       this.filters.dateRange.visible &&
       this.filters.dateRange.date.enabled &&
@@ -1254,42 +1254,42 @@ export class FilterSet {
         button.addEventListener('click', (event) => {
           if (button.classList.contains('active')) {
             const buttonClasses = button.classList;
-            const todaysDate = new Date();
+            const todayDate = new Date();
 
             if (buttonClasses.contains('btn-today')) {
-              this._setDateRangeFields('start', todaysDate);
-              this._setDateRangeFields('end', todaysDate);
+              this.#setDateRangeFields('start', todayDate);
+              this.#setDateRangeFields('end', todayDate);
             } else if (buttonClasses.contains('btn-this-week')) {
-              const weekNumber = date_utilities.getISOWeekNumber(todaysDate);
+              const weekNumber = date_utilities.getISOWeekNumber(todayDate);
 
-              const thisWeekStartDate = date_utilities.getWeekStartDate(todaysDate.getFullYear(), weekNumber);
+              const thisWeekStartDate = date_utilities.getWeekStartDate(todayDate.getFullYear(), weekNumber);
 
-              this._setDateRangeFields('start', thisWeekStartDate);
+              this.#setDateRangeFields('start', thisWeekStartDate);
 
               let thisWeekEndDate = thisWeekStartDate;
               thisWeekEndDate.setDate(thisWeekEndDate.getDate() + 6);
 
-              this._setDateRangeFields('end', thisWeekEndDate);
+              this.#setDateRangeFields('end', thisWeekEndDate);
             } else if (buttonClasses.contains('btn-this-month')) {
-              const thisMonthStartDay = new Date(todaysDate.getFullYear(), todaysDate.getMonth(), 1);
+              const thisMonthStartDay = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
 
-              this._setDateRangeFields('start', thisMonthStartDay);
+              this.#setDateRangeFields('start', thisMonthStartDay);
 
               const thisMonthLastDay = new Date(
-                todaysDate.getFullYear(),
-                todaysDate.getMonth(),
-                date_utilities.getEndOfMonth(todaysDate.getFullYear(), todaysDate.getMonth() + 1)
+                todayDate.getFullYear(),
+                todayDate.getMonth(),
+                date_utilities.getEndOfMonth(todayDate.getFullYear(), todayDate.getMonth() + 1)
               );
 
-              this._setDateRangeFields('end', thisMonthLastDay);
+              this.#setDateRangeFields('end', thisMonthLastDay);
             } else if (buttonClasses.contains('btn-this-year')) {
-              const thisYearStartDay = new Date(todaysDate.getFullYear(), 0, 1);
+              const thisYearStartDay = new Date(todayDate.getFullYear(), 0, 1);
 
-              this._setDateRangeFields('start', thisYearStartDay);
+              this.#setDateRangeFields('start', thisYearStartDay);
 
-              const thisYearEndDay = new Date(todaysDate.getFullYear(), 11, 31);
+              const thisYearEndDay = new Date(todayDate.getFullYear(), 11, 31);
 
-              this._setDateRangeFields('end', thisYearEndDay);
+              this.#setDateRangeFields('end', thisYearEndDay);
             }
           } else if (button.classList.contains('active')) {
             const dateRangeControls = dateRangeFilter.querySelectorAll('.daterange-control');
@@ -1320,7 +1320,7 @@ export class FilterSet {
   /**
    * Add an event listener to the "clear" button.
    */
-  _activateDateRangeClearButton() {
+  #activateDateRangeClearButton() {
     const dateRangeFilter = document.querySelector('#' + this.id + '-daterange-filter');
 
     const clearDateRangeButton = document.querySelector('#' + this.id + '-clear-daterange');
@@ -1349,7 +1349,7 @@ export class FilterSet {
    * @param {string} dateRangeType The type of the date range: 'start', 'end'
    * @param {number} date The day to be added in the date range's day input field.
    */
-  _setDateRangeFields(dateRangeType, date) {
+  #setDateRangeFields(dateRangeType, date) {
     if (
       this.filters.dateRange.visible &&
       (dateRangeType == 'start' || dateRangeType == 'end') &&

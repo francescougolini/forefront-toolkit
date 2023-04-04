@@ -83,7 +83,7 @@ export class Notebook {
 
           // If not specified, default the type of the section to 'text'
           if (!this.sections.list[i].type) {
-            this.section.list[i].type == 'text';
+            this.section.list[i].type = 'text';
           }
 
           if (this.sections.list[i].type == 'datetime') {
@@ -99,15 +99,14 @@ export class Notebook {
       }
 
       // Generate the basic table, without notes.
-      this._createNotebook();
+      this.#createNotebook();
 
       // Instantiate a variable to check if there are dynamic values to be retrieve from POST call
       this.notebook.dynamicValues = false;
 
-      for (const section of this.sections.list) {
+      for (let index = 0; index < this.sections.list.length; index++) {
         if (dataSourceField == '__dynamic_var__') {
           this.notebook.dynamicValues = true;
-
           break;
         }
       }
@@ -116,7 +115,7 @@ export class Notebook {
       this.notebook.statusAlert = document.querySelector('#' + this.notebook.id + '-no-notes');
 
       // Show the "Notebook initialised" alert.
-      _setAlert(this.notebook.statusAlert.id, 'initialised', true);
+      setAlert(this.notebook.statusAlert.id, 'initialised', true);
     } else {
       throw 'Notebook Error: invalid or missing properties.';
     }
@@ -125,7 +124,7 @@ export class Notebook {
   /**
    * Provide a html-formatted string to be used to display the heading of the notebook.
    */
-  _createHeading() {
+  #createHeading() {
     let labels = '';
 
     for (const section of this.sections.list) {
@@ -148,7 +147,7 @@ export class Notebook {
   /**
    * Provide a html-formatted string to be used to display a note.
    */
-  _createNote(values) {
+  #createNote(values) {
     let allValues = '';
 
     for (let value of values) {
@@ -166,8 +165,8 @@ export class Notebook {
     return note;
   }
 
-  _createNotebook() {
-    const heading = this._createHeading();
+  #createNotebook() {
+    const heading = this.#createHeading();
 
     const table = `<label for="${this.notebook.id}">${this.notebook.name}</label>
                    <div class="table-container">
@@ -231,7 +230,7 @@ export class Notebook {
       }
     }
 
-    _setAlert(this.notebook.statusAlert.id, 'loading', true);
+    setAlert(this.notebook.statusAlert.id, 'loading', true);
 
     const url = requestType == 'POST' ? this.data.postURL : requestType == 'GET' ? this.data.getURL : '';
     const data = requestType == 'POST' ? JSON.stringify(note) : undefined;
@@ -249,7 +248,7 @@ export class Notebook {
           response.text().then((error) => {
             const errorMessage = requestType == 'GET' ? 'not-loaded' : 'not-saved';
 
-            _setAlert(this.notebook.statusAlert.id, errorMessage, true);
+            setAlert(this.notebook.statusAlert.id, errorMessage, true);
 
             console.log(error);
           });
@@ -261,14 +260,14 @@ export class Notebook {
         if (Object.keys(notes).length > 0) {
           // If the "no notes" div alert is visible, hide it
           if (this.notebook.statusAlert.hidden == false) {
-            _setAlert(this.notebook.statusAlert.id, 'no-notes', false);
+            setAlert(this.notebook.statusAlert.id, 'no-notes', false);
           }
 
           // Parse the values of a note
-          const _processNote = (note) => {
+          const processNote = (note) => {
             for (const section of Object.keys(note)) {
               if (this.sections.maps.dateType.get(section)) {
-                notes[section] = _parseDateTimeField(notes[section]);
+                notes[section] = parseDateTimeField(notes[section]);
               }
             }
           };
@@ -277,15 +276,15 @@ export class Notebook {
           if (this.sections.dateType.length > 0) {
             if (requestType == 'GET') {
               for (const note of notes) {
-                _processNote(note);
+                processNote(note);
               }
             } else {
-              _processNote(notes);
+              processNote(notes);
             }
           }
 
           // Skim the notes and return only the value of sections marked as visible.
-          const _getVisibleSections = (note) => {
+          const getVisibleSections = (note) => {
             let visibleSections = [];
 
             for (const visibleSection of this.sections.maps.visible) {
@@ -316,9 +315,9 @@ export class Notebook {
 
             if (this.sections.visible && this.sections.visible.length > 0) {
               for (const note of notes) {
-                const visibleValues = _getVisibleSections(note);
+                const visibleValues = getVisibleSections(note);
 
-                const newNote = this._createNote(visibleValues);
+                const newNote = this.#createNote(visibleValues);
 
                 bodyContent += newNote;
               }
@@ -328,20 +327,20 @@ export class Notebook {
           } else {
             // 2. Single line (POST/PUT)
 
-            const visibleValues = _getVisibleSections(notes);
+            const visibleValues = getVisibleSections(notes);
 
-            const note = this._createNote(visibleValues);
+            const note = this.#createNote(visibleValues);
 
             tableBody.insertAdjacentHTML('afterbegin', note);
           }
         } else {
           // If there aren't notes, show the "no notes" div alert.
-          _setAlert(this.notebook.statusAlert.id, 'no-notes', true);
+          setAlert(this.notebook.statusAlert.id, 'no-notes', true);
         }
       })
       .catch((error) => {
         let errorMessage = requestType == 'GET' ? 'not-loaded' : 'not-saved';
-        _setAlert(this.notebook.statusAlert.id, errorMessage, true);
+        setAlert(this.notebook.statusAlert.id, errorMessage, true);
 
         console.log(error);
       });
@@ -373,7 +372,7 @@ export class Notebook {
  *
  * @param {string} value The string to be parsed.
  */
-function _parseDateTimeField(value) {
+function parseDateTimeField(value) {
   const parsedDate = new Date(value);
 
   let showDate = true;
@@ -393,8 +392,7 @@ function _parseDateTimeField(value) {
       showTime = true;
     }
 
-    formattedDate = parsedDate
-      ? date_utilities.getDateTimeInEuFormat(
+    formattedDate = date_utilities.getDateTimeInEuFormat(
           parsedDate.getFullYear(),
           parsedDate.getMonth() + 1,
           parsedDate.getDate(),
@@ -405,8 +403,7 @@ function _parseDateTimeField(value) {
           true,
           showDate,
           showTime
-        )
-      : '';
+        );
   }
 
   return formattedDate;
@@ -419,7 +416,7 @@ function _parseDateTimeField(value) {
  * @param {string} type The type of the message: "not-saved" OR "not-loaded" OR "no-notes" or "loading"
  * @param {boolean} show If true, show the message, otherwise hide it.
  */
-function _setAlert(containerID, type, show) {
+function setAlert(containerID, type, show) {
   const statusAlert = document.querySelector('#' + containerID);
 
   if (show == true) {

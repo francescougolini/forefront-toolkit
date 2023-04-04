@@ -56,8 +56,7 @@ export class Fetcher {
       this.requests = {};
       this.requests.http = {};
 
-      const httpRequest =
-        properties.httpRequest && Object(properties.httpRequest).length !== 0 ? properties.httpRequest : {};
+      const httpRequest = Object(properties.httpRequest).length !== 0 ? properties.httpRequest : {};
 
       this.requests.http.get = httpRequest.getURL ? httpRequest.getURL : '';
 
@@ -72,7 +71,7 @@ export class Fetcher {
 
       // CUSTOM PRE/POST-PROCESS FUNCTIONS
 
-      // Rreplace the list generator backend. To be used when the list generator has a dataset NOT generated normally.
+      // Replace the list generator backend. To be used when the list generator has a dataset NOT generated normally.
       this.customBackend = properties.customBackend ? properties.customBackend : null;
 
       // Custom function to operates changes after the standard table is constructed.
@@ -99,10 +98,10 @@ export class Fetcher {
    *
    * @param {boolean} newQuery Clean the page index and start the data retrieval from scratch.
    */
-  _getData(newQuery = true) {
+  #getData(newQuery = true) {
     // Disable the button while the request is processed.
     if (this.pagination.enabled) {
-      this._enableMoreRecordsButton(false);
+      this.#enableMoreRecordsButton(false);
     }
 
     if (newQuery && this.table) {
@@ -121,14 +120,14 @@ export class Fetcher {
       }
 
       // If exists, add pagination.
-      query += (query ? '&' : '') + this._createPaginationQuery();
+      query += (query ? '&' : '') + this.#createPaginationQuery();
 
       if (this.requests.http.get && !this.customBackend) {
         let url = this.requests.http.get + (query ? '?' + query : '');
 
         if (this.statusSnippet) {
           // Set a "loading..." message to prepare for the AJAX call
-          this._setStatusSnippet('partial', 'Loading...', true);
+          this.#setStatusSnippet('partial', 'Loading...', true);
         }
 
         fetch(url, {
@@ -142,14 +141,14 @@ export class Fetcher {
             if (!response.ok) {
               if (this.statusSnippet) {
                 // Set an "error" message to prepare for the AJAX call
-                this._setStatusSnippet('partial', 'Error', true);
+                this.#setStatusSnippet('partial', 'Error', true);
               }
 
               alert('Error: ' + response.statusText);
             } else {
               if (this.statusSnippet) {
                 // Set a "loading..." message to prepare for the AJAX call
-                this._setStatusSnippet('partial', 'Loading...');
+                this.#setStatusSnippet('partial', 'Loading...');
               }
             }
 
@@ -173,10 +172,10 @@ export class Fetcher {
                 }
 
                 dataProcessing.then((data) => {
-                  this._buildPage(data);
+                  this.#buildPage(data);
                 });
               } else {
-                this._buildPage(data);
+                this.#buildPage(data);
               }
 
               if (data.length > 0) {
@@ -196,7 +195,7 @@ export class Fetcher {
 
                 // Re-enable the "more records" button is enabled to allow for another retrieval attempt.
                 if (this.pagination.enabled) {
-                  this._enableMoreRecordsButton(true);
+                  this.#enableMoreRecordsButton(true);
                 }
               } else {
                 // Refresh table
@@ -204,7 +203,7 @@ export class Fetcher {
 
                 // Disable the "more records" button.
                 if (this.pagination.enabled) {
-                  this._enableMoreRecordsButton(false);
+                  this.#enableMoreRecordsButton(false);
                 }
               }
 
@@ -218,7 +217,7 @@ export class Fetcher {
               // Set a "loading..." message to prepare for the AJAX call
               let errorMessage = 'error';
 
-              this._setStatusSnippet('partial', errorMessage, true);
+              this.#setStatusSnippet('partial', errorMessage, true);
             }
 
             alert(error);
@@ -229,7 +228,7 @@ export class Fetcher {
     }
   }
 
-  _createRecordSet() {
+  #createRecordSet() {
     // Table
     if (this.table) {
       // Create an empty table.
@@ -245,7 +244,7 @@ export class Fetcher {
 
       if (filterSetSearchButton) {
         filterSetSearchButton.addEventListener('click', (event) => {
-          this._getData();
+          this.#getData();
         });
       }
 
@@ -269,7 +268,7 @@ export class Fetcher {
   /**
    * Add the controls required to run actions, and provide information on the records processed.
    */
-  _addControls() {
+  #addControls() {
     const leftControls = document.querySelector('#' + this.id + '-controls-left');
     const rightControls = document.querySelector('#' + this.id + '-controls-right');
 
@@ -288,7 +287,7 @@ export class Fetcher {
       this.controls.moreRecords = moreRecordsButtonContainer.querySelector('button');
       this.controls.moreRecords.addEventListener('click', (event) => {
         // Retrieve data and add them into the table.
-        this._getData(false);
+        this.#getData(false);
 
         // By triggering the scroll event, the table's header will be resized to fit the new content.
         const tableBody = document.querySelector('#' + this.table.id + '-body');
@@ -311,9 +310,9 @@ export class Fetcher {
       const config = { childList: true, subtree: true };
 
       const callback = (mutationsList, observer) => {
-        this._setStatusSnippet('partial', this.table.data.temporaryDataSet.length);
+        this.#setStatusSnippet('partial', this.table.data.temporaryDataSet.length);
 
-        this._setStatusSnippet('total', this.table.data.dataSet.length);
+        this.#setStatusSnippet('total', this.table.data.dataSet.length);
       };
 
       const observer = new MutationObserver(callback);
@@ -325,7 +324,7 @@ export class Fetcher {
    * Create a container with the buttons required to perform additional actions on data and data-related elements,
    * such as reset and export.
    */
-  _createContainer() {
+  #createContainer() {
     // If a container for controls and status snippets doesn't exist, create one.
     const leftControls = `<div id="${this.id}-controls-left" class="col text-start"></div>`;
 
@@ -347,7 +346,7 @@ export class Fetcher {
     container.innerHTML = controlsContainer;
 
     // Include the controls
-    this._addControls();
+    this.#addControls();
   }
 
   /**
@@ -355,7 +354,7 @@ export class Fetcher {
    *
    * @param {[string]} data An array of arrays representing the batch to be displayed.
    */
-  _buildPage(data) {
+  #buildPage(data) {
     let page = [];
 
     data.forEach((row, index) => {
@@ -371,7 +370,7 @@ export class Fetcher {
    *
    * @returns A string with the pagination query, e.g. 'page=1&limit=2".
    */
-  _createPaginationQuery() {
+  #createPaginationQuery() {
     // Build the query by creating separate blocks, to be joined at the end of the function.
     let queries = [];
 
@@ -410,7 +409,7 @@ export class Fetcher {
    *
    * @param {boolean} enable If true, enable the button, other disable it.
    */
-  _enableMoreRecordsButton(enable = true) {
+  #enableMoreRecordsButton(enable = true) {
     // Show the button.
     this.controls.moreRecords.hidden = false;
 
@@ -430,7 +429,7 @@ export class Fetcher {
    * @param {string} value The value to be shown in the status snippet.
    * @param {boolean} hideTotal Default: false. .
    */
-  _setStatusSnippet(type, value = '', hideTotal = false) {
+  #setStatusSnippet(type, value = '', hideTotal = false) {
     const partialRecords = document.querySelector('#' + this.id + '-partial-records');
     const totalRecords = document.querySelector('#' + this.id + '-total-records');
 
@@ -452,14 +451,14 @@ export class Fetcher {
    */
   initialise() {
     // Create the Fetcher
-    this._createRecordSet();
+    this.#createRecordSet();
 
     // Create the HTML of the container used to include the controls and the status snippet (if enabled).
-    this._createContainer();
+    this.#createContainer();
 
     // If so defined, retrieve the data from the default query, i.e. the one defined in the Fetcher properties.
     if (this.requests.runAtStartup) {
-      this._getData();
+      this.#getData();
     }
   }
 }

@@ -105,7 +105,7 @@ export class Table {
    * @param {array} row An array representing the content of the row.
    * @param {string} columnUID The UID of the column that will be looked up and processed.
    */
-  _setCellStyle(row, columnUID) {
+  #setCellStyle(row, columnUID) {
     const type = this.cells.typesMap.get(columnUID) ? this.cells.typesMap.get(columnUID) : 'text';
     const value = row[this.data.variables.maps.index.get(columnUID)];
 
@@ -173,7 +173,7 @@ export class Table {
    * @param {[string]} data An array of arrays representing the rows of the table.
    * @param {string} optionSelected The value of the option to be marked as selected.
    */
-  _createSelectFilterOptions(columnUID, data = [], optionSelected) {
+  #createSelectFilterOptions(columnUID, data = [], optionSelected) {
     let uniqueValues = [];
 
     data.forEach((row, index) => {
@@ -195,7 +195,7 @@ export class Table {
   /**
    * Update the status of the sorting toggle according to the sorting Map.
    */
-  _setSortingTogglesToDefault() {
+  #setSortingTogglesToDefault() {
     const table = document.querySelector('#' + this.id);
 
     this.data.variables.maps.defaultOrder.forEach((defaultOrder, columnUID) => {
@@ -212,7 +212,7 @@ export class Table {
    *
    * @param {[string]} data An array of arrays representing the columns from which to select the values.
    */
-  _updateSelectFilterOptions(data = []) {
+  #updateSelectFilterOptions(data = []) {
     const table = document.querySelector('#' + this.id);
 
     // Update select filters, if they exist.
@@ -222,7 +222,7 @@ export class Table {
 
         const optionSelected = this.data.variables.maps.filtering.get(columnUID);
 
-        selectFilter.innerHTML = this._createSelectFilterOptions(columnUID, data, optionSelected);
+        selectFilter.innerHTML = this.#createSelectFilterOptions(columnUID, data, optionSelected);
       }
     });
   }
@@ -233,7 +233,7 @@ export class Table {
    * @param {string} columnUID The UID of the column that will be filtered.
    * @param {string} data Default: ''. The data used to retrieved the options for the select filter.
    */
-  _createHeaderFilter(columnUID, data) {
+  #createHeaderFilter(columnUID, data) {
     let filter = '';
 
     const filterType = this.columns.filterMap.get(columnUID) ? this.columns.filterMap.get(columnUID) : 'none';
@@ -247,7 +247,7 @@ export class Table {
 
       filter = `<select  class="in-table-select form-select form-select-sm" data-ft-column="${columnUID}" 
                   aria-label="Filter column">
-                  ${this._createSelectFilterOptions(columnUID, targetData)}
+                  ${this.#createSelectFilterOptions(columnUID, targetData)}
                 </select>`;
     }
 
@@ -259,7 +259,7 @@ export class Table {
    *
    * @param {[string]} data An array of arrays representing the rows. Used to populate select filters.
    */
-  _createHeaders(data) {
+  #createHeaders(data) {
     // Build the head of the table
     let headers = '';
 
@@ -296,7 +296,7 @@ export class Table {
                                     </button>
                                     <div class="mb-2 ${this.columns.sortMap.get(columnUID) == false ? 'mx-auto' : ''}">
                                         <strong>
-                                            ${columnLabel !== null || columnLabel !== undefined ? columnLabel : ''}
+                                            ${columnLabel}
                                         </strong>
                                     </div>
                                     <button href="" data-ft-column="${columnUID}" data-ft-sorting="asc" data-bs-toggle="button" 
@@ -311,7 +311,7 @@ export class Table {
                                     
                                     </button>
                             </div>    
-                            <div class="align-self-center">${this._createHeaderFilter(columnUID, data)}</div>  
+                            <div class="align-self-center">${this.#createHeaderFilter(columnUID, data)}</div>  
                         </div>`;
         } else {
           headers += `<div class="ft-table-header flex-fill text-center align-top px-4 py-3" 
@@ -332,7 +332,7 @@ export class Table {
    *
    * @param {[string]} data An array of arrays representing the rows to be added to the table.
    */
-  _createRows(data) {
+  #createRows(data) {
     // Build the body of the table
     let rows = '';
 
@@ -344,14 +344,14 @@ export class Table {
       this.columns.visibilityMap.forEach((visible, columnUID) => {
         if (visible) {
           // Parse the data of each cell according to its type
-          const styledCell = this._setCellStyle(row, columnUID);
+          const styledCell = this.#setCellStyle(row, columnUID);
 
           cells += `<div data-ft-table-column="${columnUID}" data-ft-table-cell="${row[columnUID]}"
                             class="ft-table-cell border-bottom border-end ${cellsCounter === 0 ? 'border-start' : ''} 
                             ${index === 0 ? 'border-bottom' : ''} p-2" 
                             style="display:flex;align-items:center;justify-content:center;text-align:center;">
                                 ${
-                                  styledCell !== null || styledCell !== undefined ? styledCell : ''
+                                  styledCell !== null ? styledCell : ''
                                 }                            
                          </div>`;
 
@@ -375,7 +375,7 @@ export class Table {
    *
    * @param {[string]} data An array of arrays representing the rows used to populate the table's body.
    */
-  _createTableStructure(data) {
+  #createTableStructure(data) {
     // Sort Data according to the default Order
     this.data.variables.maps.defaultOrder.forEach((defaultOrder, columnUID) => {
       this.data.variables.maps.sorting.set(columnUID, defaultOrder);
@@ -385,14 +385,14 @@ export class Table {
     data = this.data.sortRecords(data);
 
     // Create the table's header
-    const headers = this._createHeaders(data);
+    const headers = this.#createHeaders(data);
 
     const tableHead = `<div id="${this.id}-head" class="ft-table-head d-flex border-bottom">
                           ${headers}
                         </div>`;
 
     // Create the table's body
-    let rows = this._createRows(data);
+    let rows = this.#createRows(data);
 
     const tableBody = `<div id="${this.id}-body" class="ft-table-body">
                           ${rows}
@@ -412,18 +412,18 @@ export class Table {
     this.data.temporaryDataSet = data;
 
     // Add table management controls to the newly created table.
-    this._createTableControls();
+    this.#createTableControls();
 
     // If present, apply conditional formatting
-    this._applyConditionalFormatting();
+    this.#applyConditionalFormatting();
 
     // Custom actions: if a custom action function is provided, run it before
-    this._runCustomPostProcessing();
+    this.#runCustomPostProcessing();
 
     // Set the sorting button on the table's header according to the default orders.
-    this._setSortingTogglesToDefault();
+    this.#setSortingTogglesToDefault();
 
-    const _arrangeElements = () => {
+    const arrangeElements = () => {
       const table = document.querySelector('#' + this.id);
 
       let columnWidths = [];
@@ -448,11 +448,11 @@ export class Table {
     // Make sure the headers and columns have the same width:
 
     // 1) On load
-    _arrangeElements();
+    arrangeElements();
 
     // 2) When resizing
     window.addEventListener('resize', (event) => {
-      _arrangeElements();
+      arrangeElements();
     });
 
     // 3) When elements in the table are added/removed.
@@ -460,7 +460,7 @@ export class Table {
     const config = { attributes: true, childList: true, subtree: true };
 
     const callback = (mutationsList, observer) => {
-      _arrangeElements();
+      arrangeElements();
     };
 
     const observer = new MutationObserver(callback);
@@ -470,7 +470,7 @@ export class Table {
   /**
    * Set the triggers to run data actions (filtering and sorting) and table actions (resetting and exporting).
    */
-  _addTableEventListeners() {
+  #addTableEventListeners() {
     const table = document.querySelector('#' + this.id);
 
     // FILTERING ---
@@ -533,7 +533,7 @@ export class Table {
   /**
    * Create a container with the buttons required to perform additional actions, such as reset and export.
    */
-  _createTableControls() {
+  #createTableControls() {
     // Reset button
     const resetButton = `<button type="button" class="btn btn-outline-secondary btn-sm mx-1" 
                           id="${this.id} + '-reset">
@@ -565,7 +565,7 @@ export class Table {
     // Add event listener only if exporting is enabled, i.e. 'raw' or 'safe' exporting is defined in properties.
     if (this.export === 'raw' || this.export === 'safe') {
       this.controls.export.addEventListener('click', (event) => {
-        this._exportData();
+        this.#exportData();
         // Make sure only the current object is reached.
         event.stopPropagation();
       });
@@ -575,7 +575,7 @@ export class Table {
   /**
    * Fit the table's content within the viewport, and enable scrolling to make sure the table is navigable.
    */
-  _enableViewportMode() {
+  #enableViewportMode() {
     const tableContainer = document.querySelector('#' + this.id);
 
     // Horizontal scroll
@@ -592,14 +592,14 @@ export class Table {
     tableBody.style.minWidth = tableHead.scrollWidth + 'px';
 
     // 1) Enable vertical scroll immediately.
-    _enableVerticalScroll();
+    enableVerticalScroll();
 
     // 2) Enable vertical scroll on resize.
     window.addEventListener('resize', (event) => {
-      _enableVerticalScroll();
+      enableVerticalScroll();
     });
 
-    function _enableVerticalScroll() {
+    function enableVerticalScroll() {
       table.style.height = window.innerHeight - tableContainer.offsetTop - 20 + 'px';
     }
 
@@ -608,7 +608,7 @@ export class Table {
     const config = { attributes: true, childList: true, subtree: true };
 
     const callback = function (mutationsList, observer) {
-      _enableVerticalScroll();
+      enableVerticalScroll();
     };
 
     const observer = new MutationObserver(callback);
@@ -618,12 +618,12 @@ export class Table {
   /**
    * Show a sticky header that is kept visible when the user scroll the table.
    */
-  _enableStickyMode() {
+  #enableStickyMode() {
     const table = document.querySelector('#' + this.id);
 
     const tableContainer = document.querySelector('#' + this.id);
 
-    let _setStickyHeader = () => {
+    const setStickyHeader = () => {
       const tableHead = document.querySelector('#' + this.id + '-head');
       const tableBody = document.querySelector('#' + this.id + '-body');
 
@@ -636,7 +636,7 @@ export class Table {
       // 2) Vertical scroll
 
       // Insert a outer container that wraps the container to enable horizontal scrolling
-      let _createTableOuterContainer = (tableOuterContainerClass, children) => {
+      const createTableOuterContainer = (tableOuterContainerClass, children) => {
         if (!table.querySelector('.' + tableOuterContainerClass)) {
           const tableOuterContainer = document.createElement('div');
 
@@ -651,7 +651,7 @@ export class Table {
       };
 
       // Table head
-      const outerHead = _createTableOuterContainer('ft-table-outer-head', tableHead);
+      const outerHead = createTableOuterContainer('ft-table-outer-head', tableHead);
 
       outerHead.style.display = 'block';
       outerHead.style.overflow = 'hidden';
@@ -660,7 +660,7 @@ export class Table {
       tableHead.style.minWidth = table.offsetWidth + 'px';
 
       // Table Body
-      const outerBody = _createTableOuterContainer('ft-table-outer-body', tableBody);
+      const outerBody = createTableOuterContainer('ft-table-outer-body', tableBody);
 
       outerBody.style.display = 'block';
       outerBody.style.overflow = 'auto'; // scroll
@@ -689,11 +689,11 @@ export class Table {
       });
     };
 
-    _setStickyHeader();
+    setStickyHeader();
 
     // 2) Enable the sticky header the page is resized.
     window.addEventListener('resize', (event) => {
-      _setStickyHeader();
+      setStickyHeader();
     });
 
     // 3) Enable the sticky header when the content of the table is changed.
@@ -701,7 +701,7 @@ export class Table {
     const config = { attributes: true, childList: true, subtree: true };
 
     const callback = function (mutationsList, observer) {
-      _setStickyHeader();
+      setStickyHeader();
     };
 
     const observer = new MutationObserver(callback);
@@ -711,7 +711,7 @@ export class Table {
   /**
    * Build the table taking in account the table's head width, no matter the viewport or visibility of the headers.
    */
-  _enableStandardMode() {
+  #enableStandardMode() {
     const tableContainer = document.querySelector('#' + this.id);
 
     // Horizontal scroll
@@ -729,16 +729,16 @@ export class Table {
   /**
    * Check the "mode" property and run the required action.
    */
-  _setDisplayMode() {
+  #setDisplayMode() {
     if (this.mode == 'sticky') {
       // Sticky mode
-      this._enableStickyMode();
+      this.#enableStickyMode();
     } else if (this.mode == 'viewport') {
       // Viewport mode
-      this._enableViewportMode();
+      this.#enableViewportMode();
     } else {
       // Standard mode
-      this._enableStandardMode();
+      this.#enableStandardMode();
     }
   }
 
@@ -753,24 +753,10 @@ export class Table {
    * @param {string} type Default: 'sourceField'. Options: 'sourceField', 'UID'.
    * @return An array of cells of a/some specified column/s.
    */
-  _getColumns(columns, values, condition = 'includes', type = 'sourceField') {
+  #getColumns(columns, values, condition = 'includes', type = 'sourceField') {
     const table = document.querySelector('#' + this.id);
 
     columns = typeof columns === 'string' ? columns.split(/,\s{0,}/) : columns ? columns : [];
-
-    let columnUIDs = [];
-
-    if (type === 'sourceField') {
-      for (const column of columns) {
-        let columnUID = this.data.variables.maps.reverseUids.get(column);
-
-        if (columnUID) {
-          columnUIDs.push(columnUID);
-        }
-      }
-    } else {
-      columnUIDs = columns;
-    }
 
     const query = columns
       .map((column) => '[data-ft-table-column="' + this.data.variables.maps.reverseUids.get(column) + '"]')
@@ -830,11 +816,11 @@ export class Table {
    * @param {string} type Default: 'sourceField'. Options: 'sourceField', 'UID'.
    * @returns An array of rows.
    */
-  _getRows(columns, values, condition = 'includes', type = 'sourceField') {
+  #getRows(columns, values, condition = 'includes', type = 'sourceField') {
     let rows = [];
 
     if (!columns || columns !== '__all__') {
-      const filteredColumns = this._getColumns(columns, values, condition, type);
+      const filteredColumns = this.#getColumns(columns, values, condition, type);
       rows = filteredColumns.map((column) => column.parentElement);
     } else {
       const allRows = document.querySelector('#' + 'table-test-table').querySelectorAll('[data-ft-table-row]');
@@ -848,15 +834,15 @@ export class Table {
   /**
    * Apply specific formatting to cells or rows that meet given criteria.
    */
-  _applyConditionalFormatting() {
+  #applyConditionalFormatting() {
     if (this.conditionalFormatting) {
       this.conditionalFormatting.forEach((item, index) => {
         if (item.target === 'cell' && item.columns) {
-          this._getColumns(item.columns, item.values, item.condition).forEach((cell, index) => {
+          this.#getColumns(item.columns, item.values, item.condition).forEach((cell, index) => {
             // Make sure the cell has not blank space at the beginning or end of the string.
             if (item.format) {
               const format =
-                typeof item.format === 'string' ? item.format.split(/,\s{0,}/) : item.format ? item.format : [];
+                typeof item.format === 'string' ? item.format.split(/,\s{0,}/) : item.format;
 
               format.forEach((stylingClass, index) => {
                 cell.classList.add(stylingClass.trim());
@@ -864,10 +850,10 @@ export class Table {
             }
           });
         } else if (item.target === 'row' && item.columns) {
-          this._getRows(item.columns, item.values, item.condition).forEach((row, index) => {
+          this.#getRows(item.columns, item.values, item.condition).forEach((row, index) => {
             if (item.format) {
               const format =
-                typeof item.format === 'string' ? item.format.split(/,\s{0,}/) : item.format ? item.format : [];
+                typeof item.format === 'string' ? item.format.split(/,\s{0,}/) : item.format;
 
               format.forEach((stylingClass, index) => {
                 row.classList.add(stylingClass.trim());
@@ -882,13 +868,13 @@ export class Table {
   /**
    * Modify the visible content of the created table by calling a function specified in the Table Properties Manifest.
    */
-  _runCustomPostProcessing() {
+  #runCustomPostProcessing() {
     // Custom actions: if a custom action function is provided, run it before
     if (this.customPostProcessing) {
       let queryTools = {};
 
-      queryTools.getColumns = this._getColumns.bind(this);
-      queryTools.getRows = this._getRows.bind(this);
+      queryTools.getColumns = this.#getColumns.bind(this);
+      queryTools.getRows = this.#getRows.bind(this);
 
       if (this.customPostProcessing && typeof this.customPostProcessing === 'function') {
         this.customPostProcessing(queryTools);
@@ -901,7 +887,7 @@ export class Table {
   /**
    * Export data in CSV (comma separated value) format.
    */
-  _exportData() {
+  #exportData() {
     // Add the header to the exported csv
 
     const visibleColumnsLabels = [];
@@ -953,13 +939,13 @@ export class Table {
     this.data.buildDataCollection(data);
 
     // Create the HTML representation of the table.
-    this._createTableStructure(this.data.dataSet);
+    this.#createTableStructure(this.data.dataSet);
 
     // Add the table-related event listeners.
-    this._addTableEventListeners();
+    this.#addTableEventListeners();
 
     // Enable the defined display mode for the table.
-    this._setDisplayMode();
+    this.#setDisplayMode();
   }
 
   /**
@@ -974,13 +960,13 @@ export class Table {
     this.data.variables.maps.sorting.clear();
 
     // Recreate the table.
-    this._createTableStructure(this.data.dataSet);
+    this.#createTableStructure(this.data.dataSet);
 
     // Re-include the event listeners.
-    this._addTableEventListeners();
+    this.#addTableEventListeners();
 
     // Enable the defined display mode for the table.
-    this._setDisplayMode();
+    this.#setDisplayMode();
   }
 
   /**
@@ -1001,17 +987,17 @@ export class Table {
     refreshedData = this.data.filterRecords(refreshedData);
 
     // Update select filters, if they exist.
-    this._updateSelectFilterOptions(refreshedData);
+    this.#updateSelectFilterOptions(refreshedData);
 
     const tableBody = document.querySelector('#' + this.id + '-body');
 
-    tableBody.innerHTML = this._createRows(refreshedData);
+    tableBody.innerHTML = this.#createRows(refreshedData);
 
     // If present, apply conditional formatting
-    this._applyConditionalFormatting();
+    this.#applyConditionalFormatting();
 
     // If present, run the custom post processing functions to manipulate the DOM elements of the body.
-    this._runCustomPostProcessing();
+    this.#runCustomPostProcessing();
 
     // Update the temporary row with the refreshed values.
     this.data.temporaryDataSet = refreshedData;
@@ -1027,7 +1013,7 @@ export class Table {
 
     let targetData = data ? data : [];
 
-    const rows = this._createRows(targetData);
+    const rows = this.#createRows(targetData);
 
     const lastRow = Array.from(tableBody.querySelectorAll('.ft-table-row')).slice(-1)[0];
 

@@ -87,7 +87,7 @@ function getFormData(domDataAttributeName, domDataAttributeValue) {
             element.getAttribute('data-ft-set-today-date') == 'true' ||
             element.getAttribute('data-ft-set-today-date') == true
           ) {
-            domFieldValue = date_utilities.getTodaysDate();
+            domFieldValue = date_utilities.getTodayDate();
           }
 
           jsonFieldValue = domFieldValue ? date_utilities.convertEuDateInIsoDate(domFieldValue) : undefined;
@@ -95,7 +95,7 @@ function getFormData(domDataAttributeName, domDataAttributeValue) {
           break;
 
         case 'checkbox':
-          jsonFieldValue = element ? element.checked : false;
+          jsonFieldValue = element.checked || false;
 
           break;
 
@@ -495,12 +495,12 @@ function validateForm(formID, clusterName, alertModule, clusterDataAttribute = '
       input.getAttribute('data-ft-start-date') &&
       input.value
     ) {
-      _startEndDateCheck(input);
+      startEndDateCheck(input);
     }
 
     // Custom telephone number check
     if (input.getAttribute('data-ft-field-type') === 'tel' && input.value) {
-      _diallingCodeCheck(input);
+      diallingCodeCheck(input);
     }
 
     // VALIDATION
@@ -539,7 +539,7 @@ function validateForm(formID, clusterName, alertModule, clusterDataAttribute = '
   });
 
   if (errorList.length > 0) {
-    _showErrors(errorList, alertModule);
+    showErrors(errorList, alertModule);
 
     return false;
   } else {
@@ -552,7 +552,7 @@ function validateForm(formID, clusterName, alertModule, clusterDataAttribute = '
    * @param {array} errorList An array with the elements that didn't pass the validation.
    * @param {string} alertModule The data-ft-alerts=* value used to identify the alert module.
    */
-  function _showErrors(errorList, alertModule) {
+  function showErrors(errorList, alertModule) {
     if (errorList.length > 0) {
       let missingFields = '';
 
@@ -731,10 +731,10 @@ function redirectToNewPage(redirectParameters) {
  *
  * NOTE: works with input fields tagged with: "data-ft-start-date="{uid}" data-ft-end-date="{uid}"  DOM attribute.
  */
-function _startEndDateCheck(input) {
+function startEndDateCheck(input) {
   let startEndDateAttribute = input.getAttribute('data-ft-start-date');
 
-  let startDateElements = input && input.value ? input.value.split('/', 3) : '';
+  let startDateElements = input.value ? input.value.split('/', 3) : '';
 
   const endDate = startEndDateAttribute ? form.querySelector('[data-ft-end-date="' + startEndDateAttribute + '"]') : '';
 
@@ -768,7 +768,7 @@ function _startEndDateCheck(input) {
  *
  * NOTE: required the (type="text") input field to have the "data-ft-field-type="tel" in order to work.
  */
-function _diallingCodeCheck(input) {
+function diallingCodeCheck(input) {
   const telRegExp = /^\+[\d\s]{2,}/g;
 
   let hasCountryCode = input.value ? telRegExp.test(input.value) : false;

@@ -24,7 +24,7 @@ export {
 };
 
 /**
- * Allows to toggle a button and untoggle the other ones.
+ * Allows to toggle a button and release the other ones.
  *
  * @param {string} toggleButtonsClass The DOM class of the buttons that will act like mutually exclusive toggle buttons.
  */
@@ -171,7 +171,7 @@ function highlightUnmatchedField(
   ['keydown', 'input', 'change'].forEach((value, index) => {
     // If, instead of selecting, the name is typed, mimic the same behaviour to populate the user id
     primaryField.addEventListener(value, (event) => {
-      let fieldVal = primaryField && primaryField.value ? primaryField.value.trim() : '';
+      let fieldVal = primaryField.value ? primaryField.value.trim() : '';
 
       if (fieldVal && fieldVal.length !== 0) {
         let isValid = false;
@@ -209,7 +209,7 @@ function highlightUnmatchedField(
             }
 
             // Else - e.g. if it's just a 1-level path - check the inputted string this way
-          } else if (fieldVal) {
+          } else {
             if (fieldVal.toLowerCase() == targetData[i][primaryFieldName].toLowerCase()) {
               primaryField.value = targetData[i][primaryFieldName];
 
@@ -266,7 +266,7 @@ function getData(dataContainerID, dataAttribute, callback) {
  * Get values from a given data- element and decode them
  *
  * @param {string} dataContainerID The container from which to extract the data.
- * @param {string} dataAttribute The data- attribute name in which data are stored withing the data container.
+ * @param {string} dataAttribute The data- attribute name in which data are stored within the data container.
  * @param {string} keyword The keyword used to read the encoded data.
  * @param {string} callback The function to be run once data is extracted.
  */
@@ -369,8 +369,6 @@ function showLoadingOverlay(show) {
 
       // Add the overlay in the dom DOM
       targetContainer.insertAdjacentHTML('beforeend', LOADING_OVERLAY_HTML);
-
-      loadingOverlay = document.querySelector('.loading-overlay');
     }
   } else {
     if (loadingOverlay) {

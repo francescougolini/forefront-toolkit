@@ -112,7 +112,7 @@ class Workload {
   getDailyWorkload(month, workload, unitary = true) {
     const businessDays = this.maps.businessDaysPerMonth.get(month);
 
-    const _calcDailyWorkload = (businessDays, dailyWorkload) => {
+    const calcDailyWorkload = (businessDays, dailyWorkload) => {
       dailyWorkloads = Array.from(businessDays).map((day, index) => {
         return [day, dailyWorkload];
       });
@@ -124,7 +124,7 @@ class Workload {
       let remainder = workload % businessDays.length;
       const dailyWorkload = (workload - remainder) / businessDays.length;
 
-      _calcDailyWorkload(businessDays, dailyWorkload);
+      calcDailyWorkload(businessDays, dailyWorkload);
 
       while (remainder > 0) {
         dailyWorkloads.forEach((dailyWorkload, index) => {
@@ -137,7 +137,7 @@ class Workload {
     } else {
       const dailyWorkload = workload / businessDays.length;
 
-      _calcDailyWorkload(businessDays, dailyWorkload);
+      calcDailyWorkload(businessDays, dailyWorkload);
     }
 
     return dailyWorkloads;
@@ -167,7 +167,7 @@ class Workload {
       }
     }
 
-    const _calcWeeklyWorkload = (firstWeekWorkload, fullWeekWorkload, lastWeekWorkload) => {
+    const calcWeeklyWorkload = (firstWeekWorkload, fullWeekWorkload, lastWeekWorkload) => {
       if (firstWeekLength < 5 && firstWeekLength != 0) {
         weeklyWorkloads.push([firstWeek, firstWeekWorkload]);
       }
@@ -191,7 +191,7 @@ class Workload {
       const firstWeekWorkload = firstWeekLength * Math.floor(fullWeekWorkload / 5);
       const lastWeekWorkload = lastWeekLength * Math.floor(fullWeekWorkload / 5);
 
-      _calcWeeklyWorkload(firstWeekWorkload, fullWeekWorkload, lastWeekWorkload);
+      calcWeeklyWorkload(firstWeekWorkload, fullWeekWorkload, lastWeekWorkload);
 
       // Include what was left before.
       let remainder = workload - fullWeekWorkload * fullWeeks - firstWeekWorkload - lastWeekWorkload;
@@ -213,7 +213,7 @@ class Workload {
       // Include what was left before.
       let remainder = (workload - weeklyWorkload * fullWeeks - firstWeekWorkload - lastWeekWorkload) / fullWeeks;
 
-      _calcWeeklyWorkload(firstWeekWorkload, weeklyWorkload + remainder, lastWeekWorkload);
+      calcWeeklyWorkload(firstWeekWorkload, weeklyWorkload + remainder, lastWeekWorkload);
     }
 
     return weeklyWorkloads;
@@ -235,7 +235,7 @@ class Workload {
       0
     );
 
-    const _getMonthlyWorkload = (workloadPerBusinessDay) => {
+    const getMonthlyWorkload = (workloadPerBusinessDay) => {
       Array.from(this.maps.businessDaysPerMonth).forEach((month, index) => {
         const monthlyBusinessDays = month[1].length;
         const monthlyWorkload = monthlyBusinessDays * workloadPerBusinessDay;
@@ -253,7 +253,7 @@ class Workload {
       let remainder = workload % yearlyBusinessDays;
       const workloadPerBusinessDay = (workload - remainder) / yearlyBusinessDays;
 
-      _getMonthlyWorkload(workloadPerBusinessDay);
+      getMonthlyWorkload(workloadPerBusinessDay);
 
       while (remainder > 0) {
         monthlyWorkloads.forEach((monthlyWorkload, index) => {
@@ -266,7 +266,7 @@ class Workload {
     } else {
       const workloadPerBusinessDay = workload / yearlyBusinessDays;
 
-      _getMonthlyWorkload(workloadPerBusinessDay);
+      getMonthlyWorkload(workloadPerBusinessDay);
     }
 
     return monthlyWorkloads;

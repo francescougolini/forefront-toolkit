@@ -33,7 +33,7 @@ import {
 import {
   createDateTextField,
   getDateFromString,
-  getTodaysDate,
+  getTodayDate,
   convertIsoDateInEuDate,
   convertEuDateInIsoDate,
   getISOWeekNumber,
@@ -112,7 +112,7 @@ export {
 export {
   createDateTextField,
   getDateFromString,
-  getTodaysDate,
+  getTodayDate,
   convertIsoDateInEuDate,
   convertEuDateInIsoDate,
   getISOWeekNumber,
